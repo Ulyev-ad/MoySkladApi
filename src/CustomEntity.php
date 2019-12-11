@@ -18,7 +18,12 @@ class CustomEntity extends MoySklad
     {
         $result = $this->builderQuery($this->path . "/" . $id_entity . '/'.$id_value, "PUT", $value, ["Content-Type" => "application/json"]);
         return $this;
+    }
 
+    public function deleteValue($id_entity, $id_value)
+    {
+        $result = $this->builderQuery($this->path . "/" . $id_entity . '/' . $id_value, "DELETE", [], ["Content-Type" => "application/json"]);
+        return $this;
     }
 
     public function getEntities($id)

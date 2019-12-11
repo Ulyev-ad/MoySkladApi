@@ -5,9 +5,6 @@ namespace Dobro\MoySkladApi\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
-/**
- * @method static list()
- */
 class ProductFolder  extends Facade
 {
     /**

@@ -11,21 +11,36 @@ class MoySklad
 {
     protected $req;
     private $Builder;
+    private $id_query = false;
+    private $login;
+    private $password;
 
     public function __construct()
     {
         $this->req = new stdClass();
         $this->Builder = new Builder();
+        $this->login = config("moy_sklad.login");
+        $this->password = config("moy_sklad.password");
     }
 
-    public function auth()
+    /**
+     * @return string
+     */
+    protected function auth()
     {
-        $login = "admin@programmer11";
-        $password = "f34fbec0b20f";
-        $credentials = base64_encode($login . ':' . $password);
+        $credentials = base64_encode($this->login . ':' . $this->password);
         return $credentials;
     }
 
+    /**
+     * @param $url
+     * @param $method
+     * @param array $json
+     * @param array $head
+     * @param bool $recursion
+     * @return mixed
+     * @throws \ErrorException
+     */
     protected function builderQuery($url, $method, $json = [], $head = [], $recursion = false)
     {
         return $this->Builder->builderQuery($url, $method, $this->req, $json, $head, $recursion);
@@ -50,9 +65,23 @@ class MoySklad
         return $depth;
     }
 
+
+    /**
+     * @param $login
+     * @param $password
+     * @return $this
+     */
+    public function setAuth($login, $password)
+    {
+        $this->login = $login;
+        $this->password = $password;
+        return $this;
+    }
+
     /**
      * @param $product_folder
      * @return $this
+     * @throws \ErrorException
      */
     public function create($product_folder)
     {
@@ -60,10 +89,7 @@ class MoySklad
             $result = $this->builderQuery($this->path, "POST", $product_folder, ["Content-Type" => "application/json"]);
         }
 
-        if (is_object($result) ){
-            $this->req = new stdClass();
-            dump($product_folder);
-            dd($result);
+        if (is_object($result)) {
             if ($this->getDepthArray($product_folder) && $this->getDepthArray((array)$result)) {
                 for ($i = 0; $i < count($product_folder); $i++) {
                     $this->req->rows[$i] = (object)array_merge($product_folder[$i], (array)$result[$i]);
@@ -78,17 +104,25 @@ class MoySklad
     /**
      * @param $product_folder
      * @return $this
+     * @throws \ErrorException
      */
     public function update($product_folder)
     {
+        if ($this->id_query != false) {
+            $id = $this->id_query;
+        } else {
+            $id = $this->req->rows{0}->id;
+        }
+
         $this->req->rows = array_merge($this->req->rows, $product_folder);
-        $result = $this->builderQuery($this->path . "/" . $this->req->rows{0}->id, "PUT", $product_folder, ["Content-Type" => "application/json"]);
+        $result = $this->builderQuery($this->path . "/" . $id, "PUT", $product_folder, ["Content-Type" => "application/json"]);
         return $this;
     }
 
     /**
      * @param $id
      * @return $this
+     * @throws \ErrorException
      */
     public function findById($id)
     {
@@ -98,6 +132,7 @@ class MoySklad
 
     /**
      * @return $this
+     * @throws \ErrorException
      */
     public function list()
     {
@@ -107,6 +142,7 @@ class MoySklad
 
     /**
      * @return mixed
+     * @throws \ErrorException
      */
     public function first()
     {
@@ -118,6 +154,7 @@ class MoySklad
 
     /**
      * @return mixed
+     * @throws \ErrorException
      */
     public function shift()
     {
@@ -128,6 +165,7 @@ class MoySklad
 
     /**
      * @return mixed
+     * @throws \ErrorException
      */
     public function get()
     {
@@ -147,6 +185,11 @@ class MoySklad
     {
         if (!isset($this->req->filters)) {
             $this->req->filters = [];
+        }
+
+        if ($key == "id" && $operator == "=") {
+            $this->id_query = $value;
+            return $this;
         }
 
         $this->req->filters [] = [$key, $operator, $value];
@@ -170,19 +213,31 @@ class MoySklad
 
     /**
      * @return $this
+     * @throws \ErrorException
      */
     public function delete()
     {
-        $result = $this->builderQuery($this->path . "/" . $this->req->rows{0}->id, "DELETE", [], ["Content-Type" => "application/json"]);
+        if ($this->id_query != false) {
+            $id = $this->id_query;
+        } else {
+            $id = $this->req->rows{0}->id;
+        }
+        $result = $this->builderQuery($this->path . "/" . $id, "DELETE", [], ["Content-Type" => "application/json"]);
         unset($this->req->rows{0});
         return $this;
     }
 
+    /**
+     * @param $limit
+     */
     public function limit($limit)
     {
         $this->req->limit = $limit;
     }
 
+    /**
+     * @param $offset
+     */
     public function offset($offset)
     {
         $this->req->offset = $offset;
@@ -191,6 +246,7 @@ class MoySklad
 
     /**
      * @return Collection
+     * @throws \ErrorException
      */
     public function getAttributes()
     {
@@ -200,12 +256,20 @@ class MoySklad
         return collect($this->req->rows);
     }
 
+    /**
+     * @return $this
+     * @throws \ErrorException
+     */
     public function listAttributes()
     {
         $this->req->rows = $this->builderQuery($this->path . "/metadata/attributes", "GET", [], ["Content-Type" => "application/json"]);
         return $this;
     }
 
+    /**
+     * @return $this
+     * @throws \ErrorException
+     */
     public function shiftAttribute()
     {
         $this->req->limit = 1;
@@ -216,6 +280,7 @@ class MoySklad
     /**
      * @param $attributes
      * @return Collection
+     * @throws \ErrorException
      */
     public function createAttribute($attributes)
     {
@@ -225,6 +290,8 @@ class MoySklad
 
     /**
      * @return Collection
+     * @throws ErrorException
+     * @throws \ErrorException
      */
     public function deleteAttribute()
     {
@@ -237,6 +304,11 @@ class MoySklad
         return collect($result);
     }
 
+    /**
+     * @param $id
+     * @return Collection
+     * @throws \ErrorException
+     */
     public function findAttribute($id)
     {
         $result = $this->builderQuery($this->path . "/metadata/attributes/" . $id, "GET", [], ["Content-Type" => "application/json"]);
