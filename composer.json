@@ -1,0 +1,17 @@
+{
+    "name": "dobro/moy_sklad_api",
+    "authors": [
+        {
+            "name": "Andrey Ulyev",
+            "email": "programmer1@webdobro.ru"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Dobro\\MoySkladApi\\": "src"
+        }
+    },
+    "require": {
+        "guzzlehttp/guzzle": "^6.5"
+    }
+}
