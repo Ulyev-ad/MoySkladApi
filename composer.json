@@ -1,5 +1,8 @@
 {
     "name": "dobro/moy_sklad_api",
+    "description": "Package to interact with MoySkladApi",
+    "minimum-stability": "stable",
+    "license": "MIT",
     "authors": [
         {
             "name": "Andrey Ulyev",
