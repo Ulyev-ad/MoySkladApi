@@ -97,7 +97,7 @@ class MoySklad
             } else {
                 $this->req->rows = (object)array_merge($product_folder, (array)$result);
             }
-            return $this;
+            return collect($this->req->rows);
         }
     }
 
@@ -116,7 +116,7 @@ class MoySklad
 
         $this->req->rows = array_merge($this->req->rows, $product_folder);
         $result = $this->builderQuery($this->path . "/" . $id, "PUT", $product_folder, ["Content-Type" => "application/json"]);
-        return $this;
+        return collect($this->req->rows);
     }
 
     /**
@@ -149,7 +149,7 @@ class MoySklad
         if (isset($this->req->rows) == false) {
             $this->list();
         }
-        return collect($this->req->rows{0});
+        return collect($this->req->rows)->first();
     }
 
     /**
