@@ -11,7 +11,7 @@ class MoySklad
 {
     protected $req;
     private $Builder;
-    private $id_query = false;
+    protected $id_query = false;
     private $login;
     private $password;
 
@@ -90,14 +90,7 @@ class MoySklad
         }
 
         if (is_object($result)) {
-            if ($this->getDepthArray($product_folder) && $this->getDepthArray((array)$result)) {
-                for ($i = 0; $i < count($product_folder); $i++) {
-                    $this->req->rows[$i] = (object)array_merge($product_folder[$i], (array)$result[$i]);
-                }
-            } else {
-                $this->req->rows = (object)array_merge($product_folder, (array)$result);
-            }
-            return collect($this->req->rows);
+            return (object)$result;
         }
     }
 
@@ -114,7 +107,11 @@ class MoySklad
             $id = $this->req->rows{0}->id;
         }
 
-        $this->req->rows = array_merge($this->req->rows, $product_folder);
+        if (isset($this->req->rows)) {
+            $this->req->rows = array_merge($this->req->rows, $product_folder);
+        } else {
+            $this->req->rows = $product_folder;
+        }
         $result = $this->builderQuery($this->path . "/" . $id, "PUT", $product_folder, ["Content-Type" => "application/json"]);
         return collect($this->req->rows);
     }
@@ -146,10 +143,12 @@ class MoySklad
      */
     public function first()
     {
-        if (isset($this->req->rows) == false) {
-            $this->list();
+        $path = null;
+        if ($this->id_query) {
+            $path = "/".$this->id_query;
         }
-        return collect($this->req->rows)->first();
+        $result = $this->builderQuery($this->path.$path, "GET");
+        return (object)$result;
     }
 
     /**
