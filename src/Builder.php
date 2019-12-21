@@ -11,7 +11,7 @@ class Builder
 {
     public function auth()
     {
-        $login = "admin@programmer11";
+        $login = config("");
         $password = "f34fbec0b20f";
         $credentials = base64_encode($login . ':' . $password);
         return $credentials;
@@ -26,13 +26,13 @@ class Builder
      * @return mixed
      * @throws ErrorException
      */
-    public function builderQuery($url, $method, $request, $json = [], $head = [], $recursion = false)
+    public function builderQuery($url, $method, $request, $auth, $json = [], $head = [], $recursion = false)
     {
         $data['http_errors'] = false;
         $data["json"] = $json;
 
         $headers = $head;
-        $headers["Authorization"] = "Basic " . $this->auth();
+        $headers["Authorization"] = "Basic " . $auth;
 
         $client = new Client([
             'headers' => $headers

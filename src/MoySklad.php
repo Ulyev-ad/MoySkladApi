@@ -43,7 +43,7 @@ class MoySklad
      */
     protected function builderQuery($url, $method, $json = [], $head = [], $recursion = false)
     {
-        return $this->Builder->builderQuery($url, $method, $this->req, $json, $head, $recursion);
+        return $this->Builder->builderQuery($url, $method, $this->req, $this->auth(), $json, $head, $recursion);
     }
 
     /**
